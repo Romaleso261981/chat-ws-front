@@ -1,10 +1,10 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { useState } from 'react';
 
 import './App.css';
 // import { ChatPage } from './pages/Chat/ChatPage';
 
-const wsChanel = new WebSocket('wss://localhost:8080');
+const wsChanel = new WebSocket('ws://localhost:8080');
 
 export type ChatMessageType = {
    text: string,
@@ -12,39 +12,48 @@ export type ChatMessageType = {
    id: number,
 };
 
-const messages = [
-   { id: 1, text: 'Hello, world!', url: 'https://picsum.photos/400/500' },
-   { id: 2, text: 'How are you?', url: 'https://picsum.photos/400/500' },
-   { id: 3, text: 'I am fine', url: 'https://picsum.photos/400/500' },
-   { id: 4, text: 'How about you?', url: 'https://picsum.photos/400/500' },
-];
+// export const messages = [
+//    { id: 1, text: 'Hello, world!', url: 'https://picsum.photos/400/500' },
+// ];
 
 function App() {
+   const [status, setStatus] = useState('close');
+   const [messages, setMessages] = useState([]);
+
+   wsChanel.onopen = () => {
+      setStatus('open');
+   };
+   wsChanel.onclose = () => {
+      setStatus('close');
+   };
+   wsChanel.onmessage = e => {
+      const parsedNewMessages = JSON.parse(e.data);
+      const {type} = parsedNewMessages; 
+      if(type !== 'connection'){
+        setMessages(prevMessage => [...prevMessage, ...parsedNewMessages]);
+      }
+   };
    return (
       <div className='chatWrapper'>
+         <div>{status}</div>
          <Messages messages={messages} />
          <AddMessage />
       </div>
    );
 }
 
-function Messages() {
-   const [messages, setMessages] = useState([]);
-
-   useEffect(() => {
-      wsChanel.addEventListener('message', e => {
-         setMessages(prevMessages => [...prevMessages, ...JSON.parse(e.data)]);
-      });
-   }, [messages]);
-
+function Messages({ messages }) {
    return (
       <div className='messagesWrapper'>
-         {messages.map(message => (
-            <div key={message.id}>
-               <img src={message.url} alt={message.text} width='30' />
-               <div key={message.id}>{message.text}</div>
-            </div>
-         ))}
+         {messages.map((message) => {
+            return (
+               <div key={message.id}>
+                  <img src={message.url} alt={message.message} width='30' />
+                  <div>{message.message}</div>
+                  <button className='btn'>delete</button>
+               </div>
+            );
+         })}
       </div>
    );
 }
@@ -53,10 +62,20 @@ function AddMessage() {
    const [message, setMessage] = useState('');
 
    const sendMessage = () => {
-    if(!message) return;
-      wsChanel.send(message);
+      if (!message) return;
+
+      const arr = {
+         message: message,
+         url: 'https://picsum.photos/400/500',
+         id: Date.now(),
+         name: 'User',
+      };
+      const messageJSON = JSON.stringify(arr);
+
+      wsChanel.send(messageJSON);
       setMessage('');
    };
+
    return (
       <>
          <div>

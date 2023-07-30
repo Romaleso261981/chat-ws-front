@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!-- <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -6,6 +6,7 @@
 </head>
 <body>
     <form id="messageForm">
+        <input type="text" name="ava" id="ava" />
         <input type="text" name="name" id="name" />
         <input type="text" name="message" id="message" />
         <input type="submit" value="send" />
@@ -14,21 +15,23 @@
     <div id="chat"></div>
     <script type="module">
         const chatEl = document.getElementById("chat");
-        const ws = new WebSocket("ws://127.0.0.1:8080");
+        const ws = new WebSocket("ws://localhost:8080");
         ws.onmessage = (message) => {
             const messages = JSON.parse(message.data);
             messages.forEach((val) => {
+					console.log(val);
                 const messageEl = document.createElement('div');
-                messageEl.appendChild(document.createTextNode(`${val.name}: ${val.message}`));
+                messageEl.appendChild(document.createTextNode(` ${val.name}: ${val.message}`));
                 chat.appendChild(messageEl);
             })
         }
         const send = (event) => {
             event.preventDefault();
+				const avatar = document.getElementById("ava").value;
             const name = document.getElementById("name").value;
             const message = document.getElementById("message").value;
             ws.send(JSON.stringify({
-                name, message
+                name, message, avatar,
             }))
             return false;
         }
@@ -37,4 +40,4 @@
 
     </script>
 </body>
-</html>
+</html> -->
